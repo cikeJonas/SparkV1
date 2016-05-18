@@ -1,0 +1,10 @@
+/*.jpage
+/build
+/src/build/idea/*.iws
+/src/java-api/com/quest/nitro/extension/federation/TESTS-TestSuites.xml
+/src/java-test/com/quest/nitro/service/scripting/named/TESTS-TestSuites.xml
+/src/web-console/WEB-INF/decorators.xml
+/src/web-console/WEB-INF/web.xml
+/local.*.properties
+.ant-targets-*
+TESTS-TestSuites.xml
