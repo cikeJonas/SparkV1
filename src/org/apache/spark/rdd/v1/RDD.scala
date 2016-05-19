@@ -2,6 +2,7 @@ package org.apache.spark.v1
 
 import java.util.Random
 
+import com.sun.xml.internal.xsom.XSWildcard.Other
 import org.apache.spark.{HashPartitioner, _}
 import org.apache.spark.annotation.{DeveloperApi, Since}
 import org.apache.spark.rdd.{CoalescedRDD, PartitionwiseSampledRDD, ShuffledRDD, _}
@@ -13,8 +14,8 @@ import scala.reflect.ClassTag
 import scala.util.Random
 
 abstract class RDD[T: ClassTag](
-                                 @transient private var _sc: SparkContext,
-                                 @transient private var deps: Seq[Dependency[_]]
+                                @transient private var _sc: SparkContext,
+                                @transient private var deps: Seq[Dependency[_]]
 
                                ) extends Serializable with Logging {
   if (classOf[RDD[_]].isAssignableFrom(elementClassTag.runtimeClass)) {
@@ -110,7 +111,8 @@ abstract class RDD[T: ClassTag](
   /**
     * Mark this RDD for persisting using the specified level.
     *
-    * @param newLevel the target storage level
+    * @param newLevel      the target storage level
+    *
     * @param allowOverride whether to override any existing level with the new one
     */
   private def persist(newLevel: StorageLevel, allowOverride: Boolean): this.type = {
@@ -261,8 +263,7 @@ abstract class RDD[T: ClassTag](
   /**
     * Compute an RDD partition or read it from a checkpoint if the RDD is checkpointing.
     */
-  private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] =
-  {
+  private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] = {
     if (isCheckpointedAndMaterialized) {
       firstParent[T].iterator(split, context)
     } else {
@@ -407,8 +408,7 @@ abstract class RDD[T: ClassTag](
   /**
     * Compute an RDD partition or read it from a checkpoint if the RDD is checkpointing.
     */
-  private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] =
-  {
+  private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T] = {
     if (isCheckpointedAndMaterialized) {
       firstParent[T].iterator(split, context)
     } else {
@@ -464,8 +464,8 @@ abstract class RDD[T: ClassTag](
   }
 
   /**
-    *  Return a new RDD by first applying a function to all elements of this
-    *  RDD, and then flattening the results.
+    * Return a new RDD by first applying a function to all elements of this
+    * RDD, and then flattening the results.
     */
   def flatMap[U: ClassTag](f: T => TraversableOnce[U]): RDD[U] = withScope {
     val cleanF = sc.clean(f)
@@ -542,7 +542,7 @@ abstract class RDD[T: ClassTag](
           position = position + 1
           (position, t)
         }
-      } : Iterator[(Int, T)]
+      }: Iterator[(Int, T)]
 
       // include a shuffle step so that our upstream tasks are still distributed
       new CoalescedRDD(
@@ -558,15 +558,17 @@ abstract class RDD[T: ClassTag](
     * Return a sampled subset of this RDD.
     *
     * @param withReplacement can elements be sampled multiple times (replaced when sampled out)
-    * @param fraction expected size of the sample as a fraction of this RDD's size
-    *  without replacement: probability that each element is chosen; fraction must be [0, 1]
-    *  with replacement: expected number of times each element is chosen; fraction must be >= 0
-    * @param seed seed for the random number generator
+    *
+    * @param fraction        expected size of the sample as a fraction of this RDD's size
+    *                        without replacement: probability that each element is chosen; fraction must be [0, 1]
+    *                        with replacement: expected number of times each element is chosen; fraction must be >= 0
+    *
+    * @param seed            seed for the random number generator
     */
   def sample(
-              withReplacement: Boolean,
-              fraction: Double,
-              seed: Long = Utils.random.nextLong): RDD[T] = withScope {
+             withReplacement: Boolean,
+             fraction: Double,
+             seed: Long = Utils.random.nextLong): RDD[T] = withScope {
     require(fraction >= 0.0, "Negative fraction value: " + fraction)
     if (withReplacement) {
       new PartitionwiseSampledRDD[T, T](this, new PoissonSampler[T](fraction), true, seed)
@@ -579,13 +581,13 @@ abstract class RDD[T: ClassTag](
     * Randomly splits this RDD with the provided weights.
     *
     * @param weights weights for splits, will be normalized if they don't sum to 1
-    * @param seed random seed
     *
+    * @param seed    random seed
     * @return split RDDs in an array
     */
   def randomSplit(
-                   weights: Array[Double],
-                   seed: Long = Utils.random.nextLong): Array[RDD[T]] = withScope {
+                  weights: Array[Double],
+                  seed: Long = Utils.random.nextLong): Array[RDD[T]] = withScope {
     val sum = weights.sum
     val normalizedCumWeights = weights.map(_ / sum).scanLeft(0.0d)(_ + _)
     normalizedCumWeights.sliding(2).map { x =>
@@ -596,13 +598,16 @@ abstract class RDD[T: ClassTag](
   /**
     * Internal method exposed for Random Splits in DataFrames. Samples an RDD given a probability
     * range.
-    * @param lb lower bound to use for the Bernoulli sampler
-    * @param ub upper bound to use for the Bernoulli sampler
+    *
+    * @param lb   lower bound to use for the Bernoulli sampler
+    *
+    * @param ub   upper bound to use for the Bernoulli sampler
+    *
     * @param seed the seed for the Random number generator
     * @return A random sub-sample of the RDD without replacement.
     */
   private[spark] def randomSampleWithRange(lb: Double, ub: Double, seed: Long): RDD[T] = {
-    this.mapPartitionsWithIndex( { (index, partition) =>
+    this.mapPartitionsWithIndex({ (index, partition) =>
       val sampler = new BernoulliCellSampler[T](lb, ub)
       sampler.setSeed(seed + index)
       sampler.sample(partition)
@@ -613,17 +618,19 @@ abstract class RDD[T: ClassTag](
     * Return a fixed-size sampled subset of this RDD in an array
     *
     * @note this method should only be used if the resulting array is expected to be small, as
-    * all the data is loaded into the driver's memory.
+    *       all the data is loaded into the driver's memory.
     *
     * @param withReplacement whether sampling is done with replacement
-    * @param num size of the returned sample
-    * @param seed seed for the random number generator
+    *
+    * @param num             size of the returned sample
+    *
+    * @param seed            seed for the random number generator
     * @return sample of specified size in an array
     */
   def takeSample(
-                  withReplacement: Boolean,
-                  num: Int,
-                  seed: Long = Utils.random.nextLong
+                 withReplacement: Boolean,
+                 num: Int,
+                 seed: Long = Utils.random.nextLong
                 ): Array[T] = withScope {
     val numStDev = 10.0
     require(num >= 0, "Negative number of elements requested.")
@@ -681,9 +688,9 @@ abstract class RDD[T: ClassTag](
     * Return this RDD sorted by the given key function.
     */
   def sortBy[K](
-                 f: (T) => K,
-                 ascending: Boolean = true,
-                 numPartitions: Int = this.partitions.length
+                f: (T) => K,
+                ascending: Boolean = true,
+                numPartitions: Int = this.partitions.length
                )
                (implicit ord: Ordering[K], ctag: ClassTag[K]): RDD[T] = withScope {
     this.keyBy[K](f).sortByKey(ascending, numPartitions).values
@@ -701,7 +708,35 @@ abstract class RDD[T: ClassTag](
       .keys
   }
 
+  def intersection(other: RDD[T],
+                   partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDD[T] = withScope {
+    this.map(v => (v, null)).cogroup(other.map(v => (v, null)), partitioner)
+      .filter { case (_, (leftGroup, rightGroup)) => leftGroup.nonEmplty && rightGroup.nonEmply }
+      .keys
+  }
 
+  /**
+    * Return the intersection of this RDD and another one. The output will not contain any duplicate
+    * elements, even if the input RDDs did. Perfeorms an hash partition across the cluster
+    *
+    * Note that this method performs a shuffle internally.
+    *
+    *
+    */
+  def intersection(other: RDD[T], numPartitions: Int): RDD[T] = withScope {
+    intersection(other, new HashPartitioner(numPartitions))
+  }
+
+  /**
+    * Return an RDD created by coalescing all elements within each partition into an array.
+    */
+  def glom(): RDD[Array[T]] = withScope {
+    new MapPartitionsRDD[Array[T], T](this, (context, pid, iter) => Iterator(iter.toArray))
+  }
+
+  def cartesian[U: ClassTag](other: RDD[U]): RDD[(T, U)] = withScope {
+    new CartesianRDD(sc, this, other)
+  }
 
 
   private var storageLevel: StorageLevel = StorageLevel.NONE
