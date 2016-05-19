@@ -8,7 +8,5 @@
 /local.*.properties
 .ant-targets-*
 TESTS-TestSuites.xml
+/lib/*.jar
 
-
-
-*.pages

@@ -4,14 +4,15 @@ import org.apache.spark._
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.rdd.CheckpointRDD
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.Utils
 
 import scala.reflect.ClassTag
 
-abstract  class RDD[T: ClassTag](
-      @transient private var _sc: SparkContext,
-      @transient private var deps: Seq[Dependency[_]]
+abstract class RDD[T: ClassTag](
+                                 @transient private var _sc: SparkContext,
+                                 @transient private var deps: Seq[Dependency[_]]
 
-) extends Serializable with Logging{
+                               ) extends Serializable with Logging {
   if (classOf[RDD[_]].isAssignableFrom(elementClassTag.runtimeClass)) {
     //This is a warning instead of an exception in order to avoid breaking user programs that
     //might have defined nested RDDs without running jobs with them
@@ -19,16 +20,16 @@ abstract  class RDD[T: ClassTag](
   }
 
   private def sc: SparkContext = {
-    if(_sc == null) {
+    if (_sc == null) {
       throw new SparkException(
         "This RDD lacks a SparkContext. It could happen in the following cases: \n (1) RDD" +
-        "transformations and actions are NOT invoked by the driver, but inside of other " +
-        "transformations; for example, rdd1.map(x => rdd2.values.count() * x) is invalid " +
-        "because the values transformation and count action cannot be performed inside of the " +
-        "rdd1.map transformation. For more information, see SPARK-5063.\n (2) When a Spark" +
-        "Streaming job recovers from checkpoint, this exception will be hit if a reference to " +
-        "an RDD not defined by the streaming job is used in DStream operations. For more " +
-        "information, See SPARK-13758"
+          "transformations and actions are NOT invoked by the driver, but inside of other " +
+          "transformations; for example, rdd1.map(x => rdd2.values.count() * x) is invalid " +
+          "because the values transformation and count action cannot be performed inside of the " +
+          "rdd1.map transformation. For more information, see SPARK-5063.\n (2) When a Spark" +
+          "Streaming job recovers from checkpoint, this exception will be hit if a reference to " +
+          "an RDD not defined by the streaming job is used in DStream operations. For more " +
+          "information, See SPARK-13758"
       )
     }
     _sc
@@ -37,10 +38,10 @@ abstract  class RDD[T: ClassTag](
   /**
     * Construct an RDD with just a one-to-one dependency on one parent
     */
-  def this(@transient oneParent:RDD[_]) =
+  def this(@transient oneParent: RDD[_]) =
     this(oneParent.context, List(new OneToOneDependency(oneParent)))
 
-  private[rdd] def conf =  sc.conf
+  private[rdd] def conf = sc.conf
 
   //=================================================================
 
@@ -61,7 +62,7 @@ abstract  class RDD[T: ClassTag](
     *
     * The partition in this array must satisfy the following property:
     *
-    *  'rdd.partitions.zipWithIndex.forall { case (partition, index) => partition.index == index }'
+    * 'rdd.partitions.zipWithIndex.forall { case (partition, index) => partition.index == index }'
     *
     */
 
@@ -83,7 +84,6 @@ abstract  class RDD[T: ClassTag](
   @transient val partition: Option[Partitioner] = None
 
 
-
   //===================================================================
   // Methods and fields available on all RDDs
 
@@ -94,7 +94,7 @@ abstract  class RDD[T: ClassTag](
     */
   def sparkContext: SparkContext = sc
 
-  /** A unique ID for this RDD (within its SparkContext).*/
+  /** A unique ID for this RDD (within its SparkContext). */
   val id: Int = sc.newRddId()
   /** A friendly name for this RDD */
   @transient var name: String = null
@@ -167,7 +167,7 @@ abstract  class RDD[T: ClassTag](
     this
   }
 
-  /** Get the RDD's current storage level, or StorageLevel.NONE if none is set.*/
+  /** Get the RDD's current storage level, or StorageLevel.NONE if none is set. */
   def getStorageLevel: StorageLevel = storageLevel
 
   //Our dependencies and partitions will be gotten by calling subclass's methods below, and will
@@ -181,7 +181,7 @@ abstract  class RDD[T: ClassTag](
   /**
     * Get the list of dependencies of this RDD, taking into account whether the
     * RDD if checkpoined or not.
-    * */
+    **/
   final def dependencies: Seq[Dependency[_]] = {
     checkpointRDD.map(r => List(new OneToOneDependency(r))).getOrElse {
       if (dependencies_ == null) {
@@ -190,6 +190,10 @@ abstract  class RDD[T: ClassTag](
       dependencies_
     }
   }
+
+  def takeSample(withReplacement:
+    Boolean, num: Int, seed: Long = Utils.random.nextLong
+                )
 
   private var storageLevel: StorageLevel = StorageLevel.NONE
 }
