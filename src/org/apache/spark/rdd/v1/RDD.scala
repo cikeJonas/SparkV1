@@ -748,7 +748,8 @@ abstract class RDD[T: ClassTag](
     groupBy(f, new HashPartitioner(numPartitions))
   }
 
-  def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDD[(K, Iterator[T])] = withScope {
+  def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDD[(K, Iterator[T])]
+  = withScope {
     val cleanF = sc.clean(f)
     this.map(t => (cleanF(t), t)).groupByKey(p)
   }
@@ -778,9 +779,27 @@ abstract class RDD[T: ClassTag](
       presevesPartitioning)
   }
 
-  private[rdd] def mapPartitionsInternal[U: ClassTag](f: Iterator[T] => Iterator[U], preservesPartitioning: Boolean = false): RDD[U] = withScope {
-
+  private[rdd] def mapPartitionsInternal[U: ClassTag](
+   f: Iterator[T] => Iterator[U], preservesPartitioning: Boolean = false): RDD[U] = withScope {
+    new MapPartitionsRDD(
+      this,
+      (context: TaskContext, index: Int, iter: Iterator[T]) => f(iter),
+      preservesPartitioning
+    )
   }
+
+  def mapPartitionsWithIndex[U: ClassTag](
+   f: (Int, Iterator[T]) => Iterator[U],
+   preservesPartitioning: Boolean = false
+  ): RDD[U] = withScope {
+    val cleanF = sc.clean(f)
+    new MapPartitionsRDD(
+      this,
+      (context: TaskContext, index: Int, iter: Iterator[T]) => cleanF(index, iter),
+      preservesPartitioning
+    )
+  }
+
 
   private var storageLevel: StorageLevel = StorageLevel.NONE
 }
