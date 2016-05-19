@@ -2,7 +2,6 @@ package org.apache.spark.v1
 
 import java.util.Random
 
-import com.sun.xml.internal.xsom.XSWildcard.Other
 import org.apache.spark.{HashPartitioner, _}
 import org.apache.spark.annotation.{DeveloperApi, Since}
 import org.apache.spark.rdd.{CoalescedRDD, PartitionwiseSampledRDD, ShuffledRDD, _}
@@ -14,10 +13,10 @@ import scala.reflect.ClassTag
 import scala.util.Random
 
 abstract class RDD[T: ClassTag](
-                                @transient private var _sc: SparkContext,
-                                @transient private var deps: Seq[Dependency[_]]
+ @transient private var _sc: SparkContext,
+ @transient private var deps: Seq[Dependency[_]]
 
-                               ) extends Serializable with Logging {
+) extends Serializable with Logging {
   if (classOf[RDD[_]].isAssignableFrom(elementClassTag.runtimeClass)) {
     // This is a warning instead of an exception in order to avoid breaking user programs that
     // might have defined nested RDDs without running jobs with them
@@ -566,9 +565,10 @@ abstract class RDD[T: ClassTag](
     * @param seed            seed for the random number generator
     */
   def sample(
-             withReplacement: Boolean,
-             fraction: Double,
-             seed: Long = Utils.random.nextLong): RDD[T] = withScope {
+   withReplacement: Boolean,
+   fraction: Double,
+   seed: Long = Utils.random.nextLong
+  ): RDD[T] = withScope {
     require(fraction >= 0.0, "Negative fraction value: " + fraction)
     if (withReplacement) {
       new PartitionwiseSampledRDD[T, T](this, new PoissonSampler[T](fraction), true, seed)
@@ -586,8 +586,9 @@ abstract class RDD[T: ClassTag](
     * @return split RDDs in an array
     */
   def randomSplit(
-                  weights: Array[Double],
-                  seed: Long = Utils.random.nextLong): Array[RDD[T]] = withScope {
+   weights: Array[Double],
+   seed: Long = Utils.random.nextLong
+  ): Array[RDD[T]] = withScope {
     val sum = weights.sum
     val normalizedCumWeights = weights.map(_ / sum).scanLeft(0.0d)(_ + _)
     normalizedCumWeights.sliding(2).map { x =>
@@ -628,10 +629,10 @@ abstract class RDD[T: ClassTag](
     * @return sample of specified size in an array
     */
   def takeSample(
-                 withReplacement: Boolean,
-                 num: Int,
-                 seed: Long = Utils.random.nextLong
-                ): Array[T] = withScope {
+   withReplacement: Boolean,
+   num: Int,
+   seed: Long = Utils.random.nextLong
+  ): Array[T] = withScope {
     val numStDev = 10.0
     require(num >= 0, "Negative number of elements requested.")
     require(
@@ -688,11 +689,11 @@ abstract class RDD[T: ClassTag](
     * Return this RDD sorted by the given key function.
     */
   def sortBy[K](
-                f: (T) => K,
-                ascending: Boolean = true,
-                numPartitions: Int = this.partitions.length
-               )
-               (implicit ord: Ordering[K], ctag: ClassTag[K]): RDD[T] = withScope {
+   f: (T) => K,
+   ascending: Boolean = true,
+   numPartitions: Int = this.partitions.length
+  )
+    (implicit ord: Ordering[K], ctag: ClassTag[K]): RDD[T] = withScope {
     this.keyBy[K](f).sortByKey(ascending, numPartitions).values
   }
 
@@ -709,7 +710,8 @@ abstract class RDD[T: ClassTag](
   }
 
   def intersection(other: RDD[T],
-                   partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDD[T] = withScope {
+   partitioner: Partitioner
+  )(implicit ord: Ordering[T] = null): RDD[T] = withScope {
     this.map(v => (v, null)).cogroup(other.map(v => (v, null)), partitioner)
       .filter { case (_, (leftGroup, rightGroup)) => leftGroup.nonEmplty && rightGroup.nonEmply }
       .keys
@@ -738,6 +740,47 @@ abstract class RDD[T: ClassTag](
     new CartesianRDD(sc, this, other)
   }
 
+  def groupBy[K](f: T => K)(implicit kt: ClassTag[K]): RDD[(K, Iterator[T])] = withScope {
+    groupBy[K](f, defaultPartitioner(this))
+  }
+
+  def groupBy[K](f: T => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDD[(K, Iterator[T])] = withScope {
+    groupBy(f, new HashPartitioner(numPartitions))
+  }
+
+  def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDD[(K, Iterator[T])] = withScope {
+    val cleanF = sc.clean(f)
+    this.map(t => (cleanF(t), t)).groupByKey(p)
+  }
+
+  def pipe(command: String): RDD[String] = withScope {
+    new PipedRDD(this, command)
+  }
+
+  def pipe(
+   command: Seq[String],
+   env: Map[String, String] = Map(),
+   printPipeContext: (String => Unit) => Unit = null,
+   printRDDElement: (T, String => Unit) => Unit = null,
+   separateWorkingDir: Boolean = false
+  ): RDD[String] = withScope {
+    new PipedRDD(this, command, env,
+      if (printPipeContext ne null) sc.clean(printPipeContext) else null,
+      if (printRDDElement ne null) sc.clean(printRDDElement) else null,
+      separateWorkingDir)
+  }
+
+  def mapPartitions[U: ClassTag](
+   f: Iterator[T] => Iterator[U],
+   presevesPartitioning: Boolean = false): RDD[U] = withScope {
+    val cleanedF = sc.clean(f)
+    new MapPartitionsRDD(this, (context: TaskContext, index: Int, iter: Iterator[T]) => cleanedF(iter),
+      presevesPartitioning)
+  }
+
+  private[rdd] def mapPartitionsInternal[U: ClassTag](f: Iterator[T] => Iterator[U], preservesPartitioning: Boolean = false): RDD[U] = withScope {
+
+  }
 
   private var storageLevel: StorageLevel = StorageLevel.NONE
 }
