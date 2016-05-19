@@ -2,3 +2,5 @@
 /lib/*.jar
 /.idea
 *.iml
+
+.idea/libraries/spark_assembly_1_6_0_hadoop2_6_0.xml
