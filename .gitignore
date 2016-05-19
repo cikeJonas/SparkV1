@@ -9,4 +9,4 @@
 .ant-targets-*
 TESTS-TestSuites.xml
 /lib/*.jar
-
+/.idea
