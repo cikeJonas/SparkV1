@@ -2,6 +2,8 @@ package org.apache.spark.v1
 
 import java.util.Random
 
+import com.google.gson.annotations.Until
+import jdk.nashorn.internal.runtime.arrays.IteratorAction
 import org.apache.spark.{HashPartitioner, _}
 import org.apache.spark.annotation.{DeveloperApi, Since}
 import org.apache.spark.rdd.{CoalescedRDD, PartitionwiseSampledRDD, ShuffledRDD, _}
@@ -798,6 +800,55 @@ abstract class RDD[T: ClassTag](
       (context: TaskContext, index: Int, iter: Iterator[T]) => cleanF(index, iter),
       preservesPartitioning
     )
+  }
+
+  def zip[U:ClassTag](other: RDD[(T,U)]) = withScope {
+    zipPatitions(other, perservespartitioning = false) {
+      (thisIter, otherIter) =>
+        new Iterator[(T,U)]{
+          def hasNext: Boolean = (thisIter.hasNext, otherIter.hasNext) match{
+            case (true,true) => true
+              case(false,false) => false
+            case _ => throw new new SparkException("Can only zip RDDs with " +
+          "same number of elements in each partition")
+          }
+          def next:(T,U) = (thisIter.next,otherIter.next)
+        }
+    })
+  }
+def zipPartitions[B:ClassTag,V:ClassTag]
+(rdd2:RDD[B])
+  (f: (Iterator[T],Iterator[B]) => Iterator[V]): RDD[V] = withScope{
+    zipPartitions(rdd2,preservesPartitioning = false)(f)
+  }
+
+
+  def zipPartitions[B:ClassTag,C:ClassTag,V:ClassTag]
+  (rdd2:RDD[B],rdd3:RDD[C],preservesPartitioning:Boolean)
+    (f:(Iterator[T],Iterator[B],Iterator[C])=> Iterator[V]):RDD[V] = withScope{
+    new ZippedPartitionsRDD3(sc,sc.clean(f),this,rdd2,rdd3,preservesPartitioning)
+  }
+
+  def foreach(f:T=>Unit): Unit= withScope{
+    val cleanF = sc.clean(f)
+    sc.runJob(this,(iter:Iterator[T])=>iter.foreach(cleanF))
+
+  }
+
+  def foreachPartition(f:Iterator[T] => Unit):Unit =withScope{
+    val cleanF = sc.clean()
+    sc.runJob(this,(iter: Iterator[T])=> cleanF(iter))
+  }
+
+  def collect(): Array[T] = withScope{
+    val results = sc.runJob(this,(iter: Iterator[T]) => iter.toArray)
+    Array.concat(results: _*)
+  }
+  def tiLocalIerator:Iterator[T] = withScope{
+    def collectPartition(p:Int):Array[T] = {
+      sc.runJob(this,(iter:Iterator[T]) => iter.toArray,Seq(p)).head
+    }
+    (0 until partitions.length).iterator.flatMap(i=> collectPartition(i))
   }
 
 
