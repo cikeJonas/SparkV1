@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+        <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="true">
+
+    <appender name="info-out" class="org.apache.log4j.FileAppender">
+        <param name="File" value="info.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMax" value="info"/>
+            <param name="LevelMin" value="info"/>
+            <param name="AcceptOnMatch" value="true"/>
+        </filter>
+    </appender>
+    <appender name="warn-out" class="org.apache.log4j.FileAppender">
+        <param name="Append" value="false"/>
+        <param name="File" value="warn.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMax" value="warn"/>
+            <param name="LevelMin" value="warn"/>
+            <param name="AcceptOnMatch" value="true"/>
+        </filter>
+    </appender>
+    <appender name="error-out" class="org.apache.log4j.FileAppender">
+        <param name="Append" value="false"/>
+        <param name="File" value="error.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMax" value="error"/>
+            <param name="LevelMin" value="error"/>
+            <param name="AcceptOnMatch" value="true"/>
+        </filter>
+    </appender>
+    <root>
+        <level value="info"/>
+        <appender-ref ref="info-out" />
+        <appender-ref ref="error-out" />
+        <appender-ref ref="warn-out"/>
+    </root>
+</log4j:configuration>
