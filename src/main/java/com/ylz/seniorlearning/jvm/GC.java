@@ -2,39 +2,38 @@ package com.ylz.seniorlearning.jvm;
 
 /**
  * 引用计数算法:
- * 缺点:不能解决互相引用问题.
+ * 缺点:不能解决互相引用问题.实际不会使用此算法
+ * 可达性分析算法.
+ * <p>
+ * gc log
+ * 1.jps
+ * 2.jinfo
+ * 3.jmap
+ * 4.jstack 线程具体信息
+ * 可视化工具
+ * 5.jconsole
+ * 6.virtualVm
+ * 7.BTrace
+ * 8.memory analysis tool
  */
 public class GC {
-    public static final int oneM = 1024 * 1024;
-    public Object instance = null;
-    private byte[] bytes = new byte[2 * oneM];
-
-    public static void testGC() {
-        GC objA = new GC();
-        GC objB = new GC();
-        objA.instance = objB;
-        objB.instance = objA;
-
-        objA = null;
-        objB = null;
-        System.gc();
-    }
+    public static final int ONE_M = 1024 * 1024;
 
     public static void testGCDetail() {
-
-        byte[] allocation1,allocation2,allocation3,allocation4;
-        allocation1 = new byte[2*1024*1024];
-        allocation2 = new byte[2*1024*1024];
-         allocation3= new byte[2*1024*1024];
-        allocation4= new byte[4*1024*1024];
+        byte[] allocation1, allocation2, allocation3, allocation4;
+        allocation1 = new byte[2 * ONE_M];
+        allocation2 = new byte[2 * ONE_M];
+        allocation3 = new byte[2 * ONE_M];
+        allocation4 = new byte[2 * 2 * ONE_M];
+        System.out.println(allocation1.toString() + allocation2.toString() + allocation3.toString() + allocation4.toString());
     }
 
     /**
      * Vm args : -Xms20m -Xmx20m -Xmn10M -XX:SurvivorRatio=8 -XX:PrintGCDetails
+     *
      * @param args
      */
-    public static void main(String[] args){
-        //testGC();
+    public static void main(String[] args) {
         testGCDetail();
     }
 
