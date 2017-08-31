@@ -70,6 +70,7 @@
             <version>4.0.38</version>
         </dependency>
 
+        <!--spring-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
@@ -171,6 +172,7 @@
             <version>${spring.version}</version>
         </dependency>
 
+        <!--redis-->
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
@@ -183,6 +185,12 @@
             <version>1.6.1.RELEASE</version>
         </dependency>
 
+        <!--quartz-->
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>1.8.6</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
