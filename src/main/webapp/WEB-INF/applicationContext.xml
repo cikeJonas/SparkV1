@@ -3,8 +3,7 @@
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:task="http://www.springframework.org/schema/task"
-       xmlns="http://www.springframework.org/schema/beans"
-       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:c="http://www.springframework.org/schema/c"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 
      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
@@ -16,15 +15,14 @@
      http://www.springframework.org/schema/task/spring-task-3.0.xsd">
     <!--  <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
         </context:component-scan>-->
-    <import resource="redis-spring.xml"/>
     <!-- 加载配置文件-->
     <task:annotation-driven/>
     <aop:aspectj-autoproxy proxy-target-class="true"/>
-    <!--    <mvc:default-servlet-handler/>
-        <mvc:annotation-driven />-->
-    <context:component-scan base-package="com.ylz.seniorlearning"/>
+    <import resource="applicationContext-web.xml"/>
+    <import resource="redis-spring.xml"/>
+    <import resource="spring-quartz.xml"/>
+    <context:component-scan base-package="com.ylz.senior.learning"/>
     <context:property-placeholder location="classpath:/*.properties" ignore-unresolvable="true" file-encoding="UTF-8"/>
-    <!-- <context:property-placeholder location="classpath:WEB-INF/jdbc.properties"/>-->
     <!-- 配置数据源-->
     <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
           init-method="init" destroy-method="close">
@@ -36,8 +34,8 @@
         <property name="initialSize" value="${initialSize}"></property>
         <!-- 同一时间连接池最大数量0 则无限制-->
         <property name="maxActive" value="${maxActive}"></property>
-        <!-- 连接池最大空闲池里不会被释放的最多空闲连接数0 则无限制-->
-        <property name="maxIdle" value="${maxIdle}"></property>
+        <!-- 连接池最大空闲池里不会被释放的最多空闲连接数0 则无限制
+        <property name="maxIdle" value="${maxIdle}"></property>-->
         <!-- 连接池最小空闲在不创建新连接的情况下，池中保持空闲的最小连接数-->
         <property name="minIdle" value="${minIdle}"></property>
         <!-- 获取连接最大等待时间-->
@@ -53,14 +51,14 @@
         <property name="mapperLocations" value="classpath:/mybatis/*.xml"/>
     </bean>
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-        <property name="basePackage" value="com.ylz.seniorlearning.spring.dao"/>
+          <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+          <property name="basePackage" value="com.ylz.senior.learning.spring.dao"/>
     </bean>
-<!--    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/"/>
-        <property name="suffix" value=".jsp"/>
-    </bean>-->
+    <!--    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+            <property name="prefix" value="/WEB-INF/"/>
+            <property name="suffix" value=".jsp"/>
+        </bean>-->
     <bean class="org.mybatis.spring.SqlSessionTemplate"
-          c:sqlSessionFactory-ref="sqlSessionFactory">
+              c:sqlSessionFactory-ref="sqlSessionFactory">
     </bean>
 </beans>

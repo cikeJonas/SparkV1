@@ -3,17 +3,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- Simple Trigger, run every 5 seconds -->
-    <bean id="simpleTrigger"
-          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
-
-        <property name="jobDetail" ref="runMeJob" />
-        <property name="repeatInterval" value="5000" />
-        <property name="startDelay" value="1000" />
-    </bean>
 
 
-    <bean id="guoxingliantongActionQuartzTigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+
+<!-- 1.
+    <bean id="testQuartzTigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail">
             <ref bean="runMeJob"/>
         </property>
@@ -21,8 +15,9 @@
             <value>0 0/5 * * * ?</value>
         </property>
     </bean>
+-->
 
-    <bean id="testQuartz" class="com.ylz.seniorlearning.quartz.TestQuartz"/>
+    <bean id="testQuartz" class="com.ylz.senior.learning.quartz.TestQuartz"/>
 
     <bean id="runMeJob"
           class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
@@ -32,13 +27,21 @@
 
     </bean>
 
+    <!-- 2. Simple Trigger, run every 5 seconds -->
+    <bean id="simpleTrigger"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail" ref="runMeJob" />
+        <property name="repeatInterval" value="5000" />
+        <property name="startDelay" value="1000" />
+    </bean>
+
+    <!-- start quartz-->
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="jobDetails">
             <list>
                 <ref bean="runMeJob" />
             </list>
         </property>
-
         <property name="triggers">
             <list>
                 <ref bean="simpleTrigger" />
