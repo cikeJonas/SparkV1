@@ -34,9 +34,9 @@ public class JavaSerialization<T> {
             ObjectInputStream in = new ObjectInputStream(is);
             return (T) in.readObject();
         } catch (IOException e) {
-            e.printStackTrace();
+           logger.error("io exception", e);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            logger.error("class not found exception", e);
         }
         return null;
     }

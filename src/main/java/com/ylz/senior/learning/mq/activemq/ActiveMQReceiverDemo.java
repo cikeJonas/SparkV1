@@ -1,7 +1,9 @@
-package com.ylz.senior.learning.mq;
+package com.ylz.senior.learning.mq.activemq;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -14,6 +16,7 @@ import javax.jms.TextMessage;
  * Created by Jonas on 2017/9/15.
  */
 public class ActiveMQReceiverDemo {
+    private Logger logger = LoggerFactory.getLogger(ActiveMQReceiverDemo.class);
     public static void main(String[] args) {
         // ConnectionFactory ：连接工厂，JMS 用它创建连接
         ConnectionFactory connectionFactory;
@@ -50,7 +53,7 @@ public class ActiveMQReceiverDemo {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         } finally {
             try {
                 if (null != connection)

@@ -237,5 +237,5 @@ public class SortAlgorithm {
         printAll(a);
     }
 
-    
+
 }

@@ -9,6 +9,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 
 /**
  * Created by Jonas on 2017/8/30.
+ * The quartZ config is at spring-quartz.xml file.
  */
 public class TestQuartz extends QuartzJobBean {
 
@@ -17,17 +18,7 @@ public class TestQuartz extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         logger.info("run this each five minutes");
-        final int[] num = {12, 2, 32, 15, 6, 231};
-/*        int start = 0;
-        int end = num[num.length];
-        while (start <= end) {
-            if (num[start] > num[end]) {
-                swap(num, start, end);
-                start++;
-            } else {
-                end--;
-            }
-        }*/
+        test();
     }
 
     private int[] swap(int[] num, int i, int j) {
@@ -56,6 +47,6 @@ public class TestQuartz extends QuartzJobBean {
 
 
     public void test() {
-        logger.info("running");
+        logger.info("running time: {}", System.currentTimeMillis());
     }
 }

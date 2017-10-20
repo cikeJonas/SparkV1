@@ -1,4 +1,4 @@
-package com.ylz.senior.learning.mq;
+package com.ylz.senior.learning.mq.activemq;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
